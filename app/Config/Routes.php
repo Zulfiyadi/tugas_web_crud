@@ -25,6 +25,7 @@ $routes->group('paket', function ($routes) {
     $routes->get('edit/(:num)', 'Paket::edit/$1');
     $routes->post('edit/(:num)', 'Paket::edit/$1');
     $routes->get('delete/(:num)', 'Paket::delete/$1');
+    $routes->get('exportPdf', 'Paket::exportPdf');
 });
 
 // Orders Routes
@@ -35,4 +36,8 @@ $routes->group('orders', function ($routes) {
     $routes->get('edit/(:num)', 'Orders::edit/$1');
     $routes->post('edit/(:num)', 'Orders::edit/$1');
     $routes->get('delete/(:num)', 'Orders::delete/$1');
+    $routes->post('cart/add', 'Orders::addToCart');
+    $routes->post('cart/update', 'Orders::updateCart');
+    $routes->post('cart/remove', 'Orders::removeFromCart');
+    $routes->post('cart/destroy', 'Orders::destroyCart');
 });

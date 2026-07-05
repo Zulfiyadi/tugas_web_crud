@@ -1,3 +1,4 @@
+<?php $errors = session()->getFlashdata('errors') ?? []; $errorMessage = session()->getFlashdata('error'); ?>
 <div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
     <div class="row w-100 justify-content-center">
         <div class="col-xl-4 col-lg-5 col-md-7 col-sm-10">
@@ -11,19 +12,35 @@
                     <p class="text-muted fs-7">Sistem Informasi Laundry.In</p>
                 </div>
 
+                <?php if ($errorMessage): ?>
+                    <div class="alert alert-danger py-2 mb-3" role="alert">
+                        <?= esc($errorMessage) ?>
+                    </div>
+                <?php endif; ?>
+
                 <form action="/auth/login" method="post">
                     <!-- Username Field -->
                     <div class="mb-3">
                         <label class="form-label" for="username"><i class="far fa-user me-2" style="color: var(--secondary-color);"></i>Username</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username Anda" required autocomplete="off">
+                        <input type="text" id="username" name="username" class="form-control <?= !empty($errors['username']) ? 'is-invalid' : '' ?>" placeholder="Masukkan username Anda" required autocomplete="off" value="<?= old('username') ?>">
+                        <?php if (!empty($errors['username'])): ?>
+                            <div class="invalid-feedback d-block">
+                                <?= esc($errors['username']) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Password Field -->
                     <div class="mb-4">
                         <label class="form-label" for="password"><i class="fas fa-lock me-2" style="color: var(--secondary-color);"></i>Password</label>
                         <div class="position-relative">
-                            <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required>
+                            <input type="password" id="password" name="password" class="form-control <?= !empty($errors['password']) ? 'is-invalid' : '' ?>" placeholder="Masukkan password Anda" required>
                         </div>
+                        <?php if (!empty($errors['password'])): ?>
+                            <div class="invalid-feedback d-block">
+                                <?= esc($errors['password']) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Submit Button -->

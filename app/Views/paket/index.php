@@ -5,9 +5,14 @@
             <h2 class="fw-bold mb-1"><i class="fas fa-box-open" style="color: var(--secondary-color); margin-right:.5rem;"></i>Paket Layanan</h2>
             <p class="text-muted mb-0">Kelola daftar paket dan estimasi pengerjaan laundry Anda.</p>
         </div>
-        <a href="/paket/create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Tambah Paket
-        </a>
+        <div>
+            <a href="/paket/exportPdf" class="btn btn-danger me-2" target="_blank">
+                <i class="fas fa-file-pdf me-2"></i>Export PDF
+            </a>
+            <a href="/paket/create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Tambah Paket
+            </a>
+        </div>
     </div>
 
     <!-- Data Panel -->

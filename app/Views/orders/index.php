@@ -5,9 +5,71 @@
             <h2 class="fw-bold mb-1"><i class="fas fa-shopping-cart" style="color: var(--secondary-color); margin-right:.5rem;"></i>Order Laundry</h2>
             <p class="text-muted mb-0">Kelola dan pantau seluruh transaksi cucian pelanggan Anda.</p>
         </div>
-        <a href="/orders/create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Tambah Order
-        </a>
+        <div class="d-flex gap-2">
+            <a href="/orders/create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Tambah Order
+            </a>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#cartModal">
+                <i class="fas fa-shopping-basket me-2"></i>Keranjang (<?= count($cartItems) ?>)
+            </button>
+        </div>
+    </div>
+
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
+    <?php endif; ?>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card glass-panel border-0 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-plus-circle me-2" style="color: var(--secondary-color);"></i>Tambah Item ke Keranjang</h5>
+                </div>
+                <form action="/orders/cart/add" method="post">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">Paket Layanan</label>
+                            <select name="id_paket" class="form-select" required>
+                                <option value="">-- Pilih Paket --</option>
+                                <?php foreach ((new \App\Models\PaketLayanan())->findAll() as $p): ?>
+                                    <option value="<?= $p['id_paket'] ?>"><?= $p['nama_paket'] ?> - Rp <?= number_format($p['harga'], 0, ',', '.') ?>/kg</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Qty</label>
+                            <input type="number" name="qty" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-cart-plus me-2"></i>Tambah
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card glass-panel border-0 p-3">
+                <h5 class="fw-bold mb-3"><i class="fas fa-wallet me-2" style="color: var(--secondary-color);"></i>Ringkasan Keranjang</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Jumlah Item</span>
+                    <span class="fw-semibold"><?= count($cartItems) ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Total</span>
+                    <span class="fw-bold text-primary">Rp <?= number_format($cartTotal, 0, ',', '.') ?></span>
+                </div>
+                <form action="/orders/cart/destroy" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-2"></i>Kosongkan
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Data Panel -->
@@ -86,6 +148,70 @@
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-panel border-0">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="cartModalLabel"><i class="fas fa-shopping-basket me-2" style="color: var(--secondary-color);"></i>Keranjang Belanja</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <?php if (!empty($cartItems)): ?>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Harga</th>
+                                    <th>Qty</th>
+                                    <th>Subtotal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($cartItems as $rowid => $item): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold"><?= esc($item['name']) ?></div>
+                                            <small class="text-muted">Estimasi: <?= esc($item['options']['estimasi'] ?? '-') ?></small>
+                                        </td>
+                                        <td>Rp <?= number_format($item['price'], 0, ',', '.') ?></td>
+                                        <td style="min-width: 120px;">
+                                            <form action="/orders/cart/update" method="post" class="d-flex gap-2">
+                                                <input type="hidden" name="rowid" value="<?= $rowid ?>">
+                                                <input type="number" name="qty" class="form-control form-control-sm" value="<?= $item['qty'] ?>" min="1" required>
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Ubah</button>
+                                            </form>
+                                        </td>
+                                        <td>Rp <?= number_format($item['price'] * $item['qty'], 0, ',', '.') ?></td>
+                                        <td>
+                                            <form action="/orders/cart/remove" method="post" class="d-inline">
+                                                <input type="hidden" name="rowid" value="<?= $rowid ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                        <p class="mb-0">Keranjang masih kosong.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer border-0">
+                <div class="me-auto fw-bold">Total: Rp <?= number_format($cartTotal, 0, ',', '.') ?></div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
         </div>
     </div>
 </div>

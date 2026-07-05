@@ -95,4 +95,24 @@ class Paket extends BaseController
             return redirect()->back()->with('error', 'Gagal menghapus paket!');
         }
     }
+
+    public function exportPdf()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/auth/login');
+        }
+
+        $data = [
+            'paket' => $this->paketModel->findAll(),
+            'title' => 'Daftar Paket Layanan Laundry'
+        ];
+
+        $html = view('paket/pdf', $data);
+
+        $dompdf = new \Dompdf\Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream('daftar_paket_laundry.pdf', ['Attachment' => 1]);
+    }
 }

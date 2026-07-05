@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Cart;
 use App\Models\Order;
 use App\Models\PaketLayanan;
 
@@ -9,11 +10,13 @@ class Orders extends BaseController
 {
     protected $orderModel;
     protected $paketModel;
+    protected $cart;
 
     public function __construct()
     {
         $this->orderModel = new Order();
         $this->paketModel = new PaketLayanan();
+        $this->cart = new Cart();
     }
 
     public function index()
@@ -24,6 +27,8 @@ class Orders extends BaseController
 
         $data = [
             'orders' => $this->orderModel->findAll(),
+            'cartItems' => $this->cart->contents(),
+            'cartTotal' => $this->cart->total(),
         ];
         return $this->view('orders/index', $data);
     }
@@ -104,6 +109,80 @@ class Orders extends BaseController
         ];
 
         return $this->view('orders/edit', $data);
+    }
+
+    public function addToCart()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/auth/login');
+        }
+
+        if ($this->request->is('post')) {
+            $paket = $this->paketModel->find($this->request->getPost('id_paket'));
+
+            if (!$paket) {
+                return redirect()->back()->with('error', 'Paket tidak ditemukan.');
+            }
+
+            $item = [
+                'id' => $paket['id_paket'],
+                'qty' => (int) $this->request->getPost('qty'),
+                'price' => (float) $paket['harga'],
+                'name' => $paket['nama_paket'],
+                'options' => [
+                    'estimasi' => $paket['estimasi'],
+                ],
+            ];
+
+            $this->cart->insert($item);
+            return redirect()->to('/orders')->with('success', 'Item ditambahkan ke keranjang.');
+        }
+
+        return redirect()->to('/orders');
+    }
+
+    public function updateCart()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/auth/login');
+        }
+
+        if ($this->request->is('post')) {
+            $rowid = $this->request->getPost('rowid');
+            $qty = $this->request->getPost('qty');
+
+            if ($rowid && $qty !== null) {
+                $this->cart->update($rowid, ['qty' => $qty]);
+            }
+        }
+
+        return redirect()->to('/orders');
+    }
+
+    public function removeFromCart()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/auth/login');
+        }
+
+        if ($this->request->is('post')) {
+            $rowid = $this->request->getPost('rowid');
+            if ($rowid) {
+                $this->cart->remove($rowid);
+            }
+        }
+
+        return redirect()->to('/orders');
+    }
+
+    public function destroyCart()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/auth/login');
+        }
+
+        $this->cart->destroy();
+        return redirect()->to('/orders')->with('success', 'Keranjang berhasil dikosongkan.');
     }
 
     public function delete($id)
